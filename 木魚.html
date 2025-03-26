@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>電子木魚</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <style>
+    body {
+      background-color: #f3f3e7;
+      text-align: center;
+      font-family: "Noto Sans TC", sans-serif;
+      margin-top: 10%;
+    }
+    h1 {
+      color: #8b4513;
+      font-size: 2em;
+    }
+    #woodfish {
+      width: 150px;
+      transition: transform 0.1s ease;
+      cursor: pointer;
+    }
+    #woodfish.clicked {
+      transform: scale(0.9);
+    }
+    .count {
+      font-size: 24px;
+      color: #5c2f2f;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>功德 +{{ count }}</h1>
+    <img
+      id="woodfish"
+      :class="{ clicked: isClicked }"
+      src="2.png"
+      @click="hit"
+    />
+    <div class="count">點木魚賺功德 🙏</div>
+  </div>
+
+  <script>
+    new Vue({
+      el: "#app",
+      data: {
+        count: 0,
+        isClicked: false,
+      },
+      methods: {
+        hit() {
+          this.count++;
+          this.isClicked = true;
+          setTimeout(() => {
+            this.isClicked = false;
+          }, 100);
+        },
+      },
+    });
+  </script>
+</body>
+</html>
