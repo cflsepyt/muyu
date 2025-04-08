@@ -1,265 +1,101 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <title>電子木魚</title>
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background-color: #f9f6ef;
-      font-family: "Noto Sans TC", sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
+<script>
+  new Vue({
+    el: "#app",
+    data: {
+      count: 0,
+      isClicked: false,
+      volume: 0.5,
+      showCrit: false,
+      showSutra: false,
+      currentSutra: "",
+      nickname: "",
+      leaderboard: [],
+      sutras: [
+        "諸行無常，是生滅法。",
+        "一切有為法，如夢幻泡影。",
+        "念佛一聲，罪滅河沙。",
+        "若人欲了知，三世一切佛，應觀法界性，一切唯心造。",
+        "萬法皆空，因果不空。",
+        "色即是空，空即是色。",
+        "心淨則國土淨。",
+        "無所住而生其心。",
+        "煩惱即菩提，生死即涅槃。",
+        "福慧雙修，方得究竟涅槃。"
+      ]
+    },
+    computed: {
+      topLeaderboard() {
+        return this.leaderboard.slice(0, 5);
+      }
+    },
+    mounted() {
+      this.fetchLeaderboard();
+    },
+    methods: {
+      hit() {
+        let isCrit = Math.random() < 0.1;
+        let gain = isCrit ? 10 : 1;
+        this.count += gain;
 
-    .container {
-      background-color: #fffdf5;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      max-width: 90%;
-      position: relative;
-    }
+        this.isClicked = true;
+        this.showCrit = isCrit;
 
-    h1 {
-      color: #8b4513;
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
+        const audio = this.$refs.audio;
+        audio.volume = this.volume;
+        audio.currentTime = 0;
+        audio.play();
 
-    #woodfish {
-      width: 150px;
-      cursor: pointer;
-      transition: transform 0.1s ease;
-    }
+        const index = Math.floor(Math.random() * this.sutras.length);
+        this.currentSutra = this.sutras[index];
+        this.showSutra = true;
 
-    #woodfish.clicked {
-      transform: scale(0.9);
-    }
+        setTimeout(() => {
+          this.isClicked = false;
+          this.showCrit = false;
+        }, 500);
 
-    .count {
-      font-size: 20px;
-      color: #5c2f2f;
-      margin-top: 15px;
-    }
-
-    .controls {
-      margin-top: 20px;
-    }
-
-    .controls button, .controls input[type="range"] {
-      margin: 5px;
-    }
-
-    .button {
-      padding: 10px 20px;
-      border: none;
-      background-color: #deb887;
-      color: white;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .button:hover {
-      background-color: #c49b6e;
-    }
-
-    input[type="range"] {
-      width: 150px;
-    }
-
-    .crit {
-      color: red;
-      font-size: 24px;
-      font-weight: bold;
-      margin-top: 10px;
-      animation: critAnim 0.5s ease;
-    }
-
-    @keyframes critAnim {
-      0% { opacity: 0; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1.2); }
-      100% { opacity: 0; transform: scale(1); }
-    }
-
-    .sutra {
-      font-size: 16px;
-      color: #444;
-      margin-top: 20px;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
-
-    .sutra.visible {
-      opacity: 1;
-    }
-
-    .leaderboard {
-      margin-top: 30px;
-      text-align: left;
-    }
-
-    .leaderboard h2 {
-      font-size: 20px;
-      color: #5c2f2f;
-      margin-bottom: 10px;
-    }
-
-    .leaderboard ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    .leaderboard li {
-      padding: 5px 10px;
-      border-bottom: 1px dashed #ccc;
-    }
-
-    .nickname-input {
-      margin-top: 20px;
-    }
-
-    .nickname-input input {
-      padding: 5px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-  </style>
-</head>
-<body>
-  <div id="app" class="container">
-    <h1>功德 +{{ count }}</h1>
-    <img
-      id="woodfish"
-      :class="{ clicked: isClicked }"
-      src="2.png"
-      @click="hit"
-    />
-    <div class="count">點木魚賺功德 🙏</div>
-
-    <div v-if="showCrit" class="crit">爆擊！+10 功德 🔥</div>
-
-    <div class="sutra" :class="{ visible: showSutra }">{{ currentSutra }}</div>
-
-    <div class="controls">
-      <button class="button" @click="reset">重置</button>
-      <div>
-        <label for="volume">音量：</label>
-        <input type="range" id="volume" min="0" max="1" step="0.01" v-model="volume" />
-      </div>
-    </div>
-
-    <div class="nickname-input">
-      <input type="text" v-model="nickname" placeholder="輸入你的暱稱" />
-      <button class="button" @click="submitScore">提交排行榜</button>
-    </div>
-
-    <div class="leaderboard" v-if="leaderboard.length">
-      <h2>🏆 功德排行榜（Top 5）</h2>
-      <ul>
-        <li v-for="(entry, index) in topLeaderboard" :key="index">
-          {{ index + 1 }}. {{ entry.name }} - 功德 {{ entry.score }}
-        </li>
-      </ul>
-    </div>
-
-    <audio ref="audio" src="woodfish.mp3"></audio>
-  </div>
-
-  <script>
-    new Vue({
-      el: "#app",
-      data: {
-        count: 0,
-        isClicked: false,
-        volume: 0.5,
-        showCrit: false,
-        showSutra: false,
-        currentSutra: "",
-        nickname: "",
-        leaderboard: [],
-        sutras: [
-          "諸行無常，是生滅法。",
-          "一切有為法，如夢幻泡影。",
-          "念佛一聲，罪滅河沙。",
-          "若人欲了知，三世一切佛，應觀法界性，一切唯心造。",
-          "萬法皆空，因果不空。",
-          "色即是空，空即是色。",
-          "心淨則國土淨。",
-          "無所住而生其心。",
-          "煩惱即菩提，生死即涅槃。",
-          "福慧雙修，方得究竟涅槃。"
-        ]
+        setTimeout(() => {
+          this.showSutra = false;
+        }, 5000);
       },
-      computed: {
-        topLeaderboard() {
-          return this.leaderboard.slice(0, 5);
+      reset() {
+        this.count = 0;
+      },
+      submitScore() {
+        if (!this.nickname.trim()) {
+          alert("請輸入暱稱！");
+          return;
         }
-      },
-      mounted() {
-        this.loadLeaderboard();
-      },
-      methods: {
-        hit() {
-          let isCrit = Math.random() < 0.1;
-          let gain = isCrit ? 10 : 1;
-          this.count += gain;
 
-          this.isClicked = true;
-          this.showCrit = isCrit;
-
-          const audio = this.$refs.audio;
-          audio.volume = this.volume;
-          audio.currentTime = 0;
-          audio.play();
-
-          const index = Math.floor(Math.random() * this.sutras.length);
-          this.currentSutra = this.sutras[index];
-          this.showSutra = true;
-
-          setTimeout(() => {
-            this.isClicked = false;
-            this.showCrit = false;
-          }, 500);
-
-          setTimeout(() => {
-            this.showSutra = false;
-          }, 5000);
-        },
-        reset() {
-          this.count = 0;
-        },
-        submitScore() {
-          if (!this.nickname.trim()) {
-            alert("請輸入暱稱！");
-            return;
-          }
-
-          this.leaderboard.push({
+        fetch("https://script.google.com/macros/s/AKfycby2mwwXEmefEZ5SAbCCrWDKHVxtS5XsGrx25yP5wYHeHQnNx6P1IWieLLeH8OmkU--QiA/exec", {
+          method: "POST",
+          body: JSON.stringify({
             name: this.nickname.trim(),
             score: this.count
-          });
-
-          this.leaderboard.sort((a, b) => b.score - a.score);
-          localStorage.setItem("woodfish_leaderboard", JSON.stringify(this.leaderboard));
-          this.count = 0;
-        },
-        loadLeaderboard() {
-          const saved = localStorage.getItem("woodfish_leaderboard");
-          if (saved) {
-            this.leaderboard = JSON.parse(saved);
+          }),
+          headers: {
+            "Content-Type": "application/json"
           }
-        }
+        })
+        .then(() => {
+          alert("✅ 已成功提交到雲端排行榜！");
+          this.count = 0;
+          this.fetchLeaderboard();
+        })
+        .catch(err => {
+          alert("❌ 提交失敗：" + err);
+        });
+      },
+      fetchLeaderboard() {
+        fetch("https://script.google.com/macros/s/AKfycby2mwwXEmefEZ5SAbCCrWDKHVxtS5XsGrx25yP5wYHeHQnNx6P1IWieLLeH8OmkU--QiA/exec")
+          .then(res => res.json())
+          .then(data => {
+            this.leaderboard = data.sort((a, b) => b.score - a.score);
+          })
+          .catch(() => {
+            console.warn("⚠️ 無法載入雲端排行榜");
+          });
       }
-    });
-  </script>
-</body>
-</html>
+    }
+  });
+</script>
