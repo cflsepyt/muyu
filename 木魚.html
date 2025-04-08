@@ -4,34 +4,79 @@
   <meta charset="UTF-8" />
   <title>電子木魚</title>
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">
   <style>
     body {
-      background-color: #f3f3e7;
-      text-align: center;
+      background-color: #f9f6ef;
       font-family: "Noto Sans TC", sans-serif;
-      margin-top: 10%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
     }
+
+    .container {
+      background-color: #fffdf5;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 90%;
+    }
+
     h1 {
       color: #8b4513;
-      font-size: 2em;
+      font-size: 2.5em;
+      margin-bottom: 10px;
     }
+
     #woodfish {
       width: 150px;
-      transition: transform 0.1s ease;
       cursor: pointer;
+      transition: transform 0.1s ease;
     }
+
     #woodfish.clicked {
       transform: scale(0.9);
     }
+
     .count {
-      font-size: 24px;
+      font-size: 20px;
       color: #5c2f2f;
-      margin-top: 10px;
+      margin-top: 15px;
+    }
+
+    .controls {
+      margin-top: 20px;
+    }
+
+    .controls button, .controls input[type="range"] {
+      margin: 5px;
+    }
+
+    .button {
+      padding: 10px 20px;
+      border: none;
+      background-color: #deb887;
+      color: white;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .button:hover {
+      background-color: #c49b6e;
+    }
+
+    input[type="range"] {
+      width: 150px;
     }
   </style>
 </head>
 <body>
-  <div id="app">
+  <div id="app" class="container">
     <h1>功德 +{{ count }}</h1>
     <img
       id="woodfish"
@@ -39,7 +84,16 @@
       src="2.png"
       @click="hit"
     />
-    <div class="count">點木魚賺TACOCO 🙏</div>
+    <div class="count">點木魚賺功德 🙏</div>
+
+    <div class="controls">
+      <button class="button" @click="reset">重置</button>
+      <div>
+        <label for="volume">音量：</label>
+        <input type="range" id="volume" min="0" max="1" step="0.01" v-model="volume" />
+      </div>
+    </div>
+    <audio ref="audio" src="woodfish.mp3"></audio>
   </div>
 
   <script>
@@ -48,16 +102,24 @@
       data: {
         count: 0,
         isClicked: false,
+        volume: 0.5
       },
       methods: {
         hit() {
           this.count++;
           this.isClicked = true;
+          const audio = this.$refs.audio;
+          audio.volume = this.volume;
+          audio.currentTime = 0;
+          audio.play();
           setTimeout(() => {
             this.isClicked = false;
           }, 100);
         },
-      },
+        reset() {
+          this.count = 0;
+        }
+      }
     });
   </script>
 </body>
