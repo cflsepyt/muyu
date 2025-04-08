@@ -23,6 +23,7 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
       text-align: center;
       max-width: 90%;
+      position: relative;
     }
 
     h1 {
@@ -73,6 +74,32 @@
     input[type="range"] {
       width: 150px;
     }
+
+    .crit {
+      color: red;
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 10px;
+      animation: critAnim 0.5s ease;
+    }
+
+    @keyframes critAnim {
+      0% { opacity: 0; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0; transform: scale(1); }
+    }
+
+    .sutra {
+      font-size: 16px;
+      color: #444;
+      margin-top: 20px;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .sutra.visible {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -85,6 +112,10 @@
       @click="hit"
     />
     <div class="count">點木魚賺功德 🙏</div>
+
+    <div v-if="showCrit" class="crit">爆擊！+10 功德 🔥</div>
+
+    <div class="sutra" :class="{ visible: showSutra }">{{ currentSutra }}</div>
 
     <div class="controls">
       <button class="button" @click="reset">重置</button>
@@ -102,19 +133,51 @@
       data: {
         count: 0,
         isClicked: false,
-        volume: 0.5
+        volume: 0.5,
+        showCrit: false,
+        showSutra: false,
+        currentSutra: "",
+        sutras: [
+          "諸行無常，是生滅法。",
+          "一切有為法，如夢幻泡影。",
+          "心淨則國土淨。",
+          "若人欲了知，三世一切佛，應觀法界性，一切唯心造。",
+          "色即是空，空即是色。",
+          "煩惱即菩提，生死即涅槃。",
+          "福慧雙修，方得究竟涅槃。",
+          "無所住而生其心。",
+          "念佛一聲，罪滅河沙。",
+          "萬法皆空，因果不空。"
+        ]
       },
       methods: {
         hit() {
-          this.count++;
+          let isCrit = Math.random() < 0.1;
+          let gain = isCrit ? 10 : 1;
+          this.count += gain;
+
           this.isClicked = true;
+          this.showCrit = isCrit;
+
+          // 播音效
           const audio = this.$refs.audio;
           audio.volume = this.volume;
           audio.currentTime = 0;
           audio.play();
+
+          // 顯示佛經
+          const index = Math.floor(Math.random() * this.sutras.length);
+          this.currentSutra = this.sutras[index];
+          this.showSutra = true;
+
           setTimeout(() => {
             this.isClicked = false;
-          }, 100);
+            this.showCrit = false;
+          }, 500);
+
+          setTimeout(() => {
+            this.showSutra = false;
+          }, 5000);
         },
         reset() {
           this.count = 0;
